@@ -1,12 +1,16 @@
 # 외부 API 계약 명세
 
 **기능**: 001-telegram-claude-worker
-**날짜**: 2025-11-08
-**버전**: 1.0.0
+**날짜**: 2025-11-15 (최종 업데이트)
+**버전**: 2.0.0
 
 ## 개요
 
 이 문서는 CCW가 통합하는 외부 API(Claude API, GitHub API)의 호출 계약을 정의합니다.
+
+**사용 모델**:
+- **MainAgent**: `claude-sonnet-4` (고품질 코드 작성)
+- **LoggerAgent**: `claude-haiku-4` (저비용 로그 생성)
 
 ---
 
@@ -21,7 +25,7 @@
 **요청 스키마**:
 ```json
 {
-  "model": "claude-3-sonnet-20240229",
+  "model": "claude-sonnet-4",
   "max_tokens": 4096,
   "system": "당신은 Python 코딩 전문가입니다...",
   "messages": [
@@ -32,6 +36,8 @@
   ]
 }
 ```
+
+**Note**: LoggerAgent는 `claude-haiku-4`를 사용하여 비용을 절감합니다.
 
 **응답 스키마** (성공):
 ```json
@@ -45,7 +51,7 @@
       "text": "main.py에 비동기 로깅 기능을 추가했습니다..."
     }
   ],
-  "model": "claude-3-sonnet-20240229",
+  "model": "claude-sonnet-4",
   "stop_reason": "end_turn",
   "usage": {
     "input_tokens": 150,
@@ -70,12 +76,12 @@
 from anthropic import Anthropic
 import os
 
-async def call_claude(prompt: str, system_prompt: str) -> str:
+async def call_claude(prompt: str, system_prompt: str, model: str = "claude-sonnet-4") -> str:
     client = Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
     try:
         response = await client.messages.create(
-            model="claude-3-sonnet-20240229",
+            model=model,  # MainAgent: "claude-sonnet-4", LoggerAgent: "claude-haiku-4"
             max_tokens=4096,
             system=system_prompt,
             messages=[
@@ -100,7 +106,7 @@ async def call_claude(prompt: str, system_prompt: str) -> str:
 **요청 스키마**:
 ```json
 {
-  "model": "claude-3-sonnet-20240229",
+  "model": "claude-sonnet-4",
   "max_tokens": 4096,
   "stream": true,
   "system": "...",
@@ -133,11 +139,11 @@ data: {"type":"message_stop"}
 
 **Python 구현 예시**:
 ```python
-async def stream_claude(prompt: str, system_prompt: str):
+async def stream_claude(prompt: str, system_prompt: str, model: str = "claude-sonnet-4"):
     client = Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
     async with client.messages.stream(
-        model="claude-3-sonnet-20240229",
+        model=model,
         max_tokens=4096,
         system=system_prompt,
         messages=[{"role": "user", "content": prompt}]
@@ -199,11 +205,18 @@ class TokenUsage:
     def total(self) -> int:
         return self.input_tokens + self.output_tokens
 
-    @property
-    def cost_usd(self) -> float:
-        # Claude 3 Sonnet 가격 (예시)
-        input_cost = self.input_tokens * 0.003 / 1000
-        output_cost = self.output_tokens * 0.015 / 1000
+    def cost_usd(self, model: str = "claude-sonnet-4") -> float:
+        # Claude 모델별 가격 (예시 - 실제 가격은 Anthropic 공식 문서 참조)
+        if model == "claude-sonnet-4":
+            input_cost = self.input_tokens * 0.003 / 1000
+            output_cost = self.output_tokens * 0.015 / 1000
+        elif model == "claude-haiku-4":
+            # Haiku는 약 10배 저렴
+            input_cost = self.input_tokens * 0.0003 / 1000
+            output_cost = self.output_tokens * 0.0015 / 1000
+        else:
+            raise ValueError(f"Unknown model: {model}")
+
         return input_cost + output_cost
 
 class AgentSession:

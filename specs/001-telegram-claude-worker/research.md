@@ -115,47 +115,69 @@ dependencies = [
 
 ## 아키텍처 패턴
 
-### 1. 에이전트 기반 설계
+### 1. 2개 에이전트 기반 설계 (비용 최적화)
 
-**결정**: 4가지 전문 에이전트를 독립된 모듈로 구현
+**결정**: **2개의 특화된 에이전트**로 구성 (4개 → 2개로 단순화)
 
 **에이전트 역할**:
 
-1. **코딩 전문가 (CodingAgent)**
-   - 코드 작성, 수정, 리팩토링
-   - 버그 수정 및 기능 추가
-   - 코드 리뷰 및 제안
+1. **메인 에이전트 (Main Agent - Claude Sonnet 4)**
+   - 모든 핵심 작업 수행: 코딩, GitHub 통합, 서버 명령 실행, 요구사항 이해
+   - 코딩 도구 사용: 파일 읽기/쓰기, 코드 검색, 편집, 탐색, 분석
+   - GitHub 도구 사용: 커밋, PR 생성, 배포 모니터링
+   - Bash 도구 사용: 안전한 명령 실행
+   - 오류 분석 및 해결
+   - 품질 중심: 정확한 코드 작성 및 문제 해결
 
-2. **작업 로그 작성 전문가 (LogAgent)**
-   - 작업 완료 후 마크다운 로그 생성
+2. **로거 에이전트 (Logger Agent - Claude Haiku 4)**
+   - 작업 로그 생성 전용
+   - 메인 에이전트의 작업 결과를 받아 간결한 마크다운 로그 생성
    - 결정사항, 이슈, 논의 내용 문서화
    - 이슈별 로그 그룹화 및 업데이트
+   - 비용 효율성 중심: 토큰 비용 최소화 (Haiku 사용)
 
-3. **서버 명령어 수행 전문가 (ServerAgent)**
-   - 안전한 서버 명령어 실행
-   - 명령어 검증 및 차단 (파괴적 명령)
-   - 콘솔 출력 포맷팅
-
-4. **Python 오류 분석 전문가 (ErrorAgent)**
-   - 예외 스택 트레이스 분석
-   - 오류 원인 및 해결 방법 제안
-   - 텔레그램으로 오류 보고 포맷팅
+**왜 2개인가?**
+- **비용 최적화**: 로깅은 Haiku로 처리하여 토큰 비용 절감 (Sonnet 대비 ~10배 저렴)
+- **복잡도 최소화**: 에이전트 간 컨텍스트 전달 오버헤드 감소
+- **레이턴시 감소**: 에이전트 수가 많을수록 순차 처리 시간 증가
+- **프롬프트 특화**: 각 에이전트의 프롬프트를 역할에 맞게 독립적으로 튜닝 가능
+- **실용성**: 메인 작업과 로깅은 요구사항이 명확히 다름 (품질 vs 간결성)
 
 **패턴**:
 ```python
+# constants.py에서 모델 지정
+MAIN_AGENT_MODEL = "claude-sonnet-4"
+LOGGER_AGENT_MODEL = "claude-haiku-4"
+
 class BaseAgent:
-    def __init__(self, client: Anthropic):
+    def __init__(self, client: Anthropic, model: str):
         self.client = client
+        self.model = model
         self.system_prompt = ""
 
     async def execute(self, task: str, context: dict) -> str:
         # 공통 실행 로직
-        pass
+        response = await self.client.messages.create(
+            model=self.model,
+            system=self.system_prompt,
+            messages=[{"role": "user", "content": task}],
+            max_tokens=4096
+        )
+        return response.content[0].text
 
-class CodingAgent(BaseAgent):
+class MainAgent(BaseAgent):
+    """메인 에이전트 (Sonnet): 모든 핵심 작업 수행"""
     def __init__(self, client: Anthropic):
-        super().__init__(client)
-        self.system_prompt = CODING_AGENT_PROMPT
+        super().__init__(client, MAIN_AGENT_MODEL)
+        self.system_prompt = MAIN_AGENT_PROMPT
+        # 코딩, GitHub, Bash 도구 접근
+
+class LoggerAgent(BaseAgent):
+    """로거 에이전트 (Haiku): 로그 생성 전용"""
+    def __init__(self, client: Anthropic):
+        super().__init__(client, LOGGER_AGENT_MODEL)
+        self.system_prompt = LOGGER_AGENT_PROMPT
+        # 간결한 로그 작성에 최적화된 프롬프트
 ```
 
 ### 2. 비동기 처리 아키텍처
@@ -246,34 +268,32 @@ async def execute_task_with_timeout(task_func, timeout_minutes=30):
         raise
 ```
 
-**연결 끊김 감지**:
-```python
-class ConnectionMonitor:
-    async def monitor_telegram_connection(self, on_disconnect):
-        while True:
-            if not self.is_connected():
-                await on_disconnect()
-                break
-            await asyncio.sleep(5)  # 5초마다 체크
+**서버 재시작 처리**:
 
-async def handle_disconnect():
-    # 진행 중인 작업 중단
-    await cancel_running_task()
-    # 변경사항 롤백 (Git reset)
-    await rollback_changes()
-    # 중단 사실 로그 기록
-    await log_task_interruption()
-```
+텔레그램 봇은 **stateless HTTP 기반**이므로 "연결"이라는 개념이 없습니다. 대신 서버 재시작 시 진행 중이던 작업의 처리가 필요합니다:
+
+- **NFR-004**: 서버 재시작 시 진행 중이던 작업은 자동으로 중단되며, 부분 변경사항은 Git 미커밋 상태로 유지됨
+- 서버 재시작 후 랜디에게 중단 사실을 알려야 함 (다음 메시지 수신 시)
+- 중단된 작업 정보는 작업 로그에 기록되어야 함
 
 ## 도구 구현 (Tool Implementation)
 
 ### 개요
 
-코딩 에이전트가 실제 작업을 수행하려면 파일 읽기/쓰기, 코드 검색, 명령 실행 등의 도구가 필요합니다. Claude Agent SDK의 tool calling 기능을 활용하여 다음 도구들을 구현합니다.
+메인 에이전트가 실제 작업을 수행하려면 다양한 도구가 필요합니다. 도구는 **4개 카테고리**로 구성됩니다:
+
+1. **코딩 도구 (coding/)**: 파일 I/O, 코드 검색, 편집, 탐색, 분석
+2. **GitHub 도구 (github/)**: 커밋, PR, 배포 모니터링
+3. **로깅 도구 (logging/)**: 작업 로그 읽기/쓰기
+4. **Bash 도구 (bash/)**: 서버 명령 실행 및 검증
 
 ### 도구 카테고리
 
-#### 1. 파일 작업 도구
+#### 1. 코딩 도구 (coding/)
+
+메인 에이전트가 코딩 작업을 수행할 때 사용하는 도구들입니다.
+
+##### 1.1 파일 I/O (file_io.py)
 
 **Read (파일 읽기)**
 - **기능**: 지정된 경로의 파일 내용을 읽어옴
@@ -376,7 +396,126 @@ def edit_file(path: str, old_string: str, new_string: str, replace_all: bool = F
     return f"파일 수정 완료: {count}개 치환됨"
 ```
 
-#### 2. 검색/탐색 도구
+##### 1.2 코드 검색 (search.py)
+
+**기능**: 코드베이스에서 패턴을 검색합니다.
+
+**구현**:
+- **Grep**: ripgrep 기반 빠른 코드 검색
+- **Glob**: 파일 이름 패턴 매칭
+
+이 도구들은 아래 "2. 검색/탐색 도구"에서 상세히 설명됩니다.
+
+##### 1.3 코드 편집 (editor.py)
+
+**기능**: 코드를 안전하고 정확하게 수정합니다.
+
+**결정**: **문자열 치환 기반 편집** (Edit 도구와 동일)
+
+**근거**:
+- 간단하고 예측 가능한 동작
+- 에이전트가 정확히 어떤 부분이 바뀌는지 명확히 알 수 있음
+- AST 기반보다 구현이 단순하며 다양한 파일 형식 지원
+
+**대안 검토**:
+- **전체 파일 교체**: 대용량 파일에서 비효율적, diff 확인 어려움
+- **AST 기반 변경**: Python 전용, 복잡도 높음, 구문 오류 시 실패
+
+**구현 고려사항**:
+- old_string이 고유하지 않으면 오류 발생 (안전장치)
+- replace_all 옵션으로 모든 발생 치환 가능
+
+##### 1.4 디렉토리 탐색 (navigator.py)
+
+**결정**: Glob 패턴 기반 재귀 탐색
+
+**기능**:
+- 파일/디렉토리 목록 조회
+- 재귀 탐색 (`**` 패턴)
+- `.gitignore` 준수 (선택적)
+- 수정 시간 기준 정렬
+
+**구현**:
+```python
+from pathlib import Path
+import fnmatch
+
+def navigate(pattern: str = "*", recursive: bool = False,
+             respect_gitignore: bool = True) -> list[str]:
+    """
+    디렉토리 탐색 도구
+
+    Args:
+        pattern: 파일 패턴 (예: *.py, **/*.ts)
+        recursive: 재귀 탐색 여부
+        respect_gitignore: .gitignore 준수 여부
+
+    Returns:
+        매칭된 파일 경로 목록
+    """
+    base_path = Path(".")
+
+    if recursive or "**" in pattern:
+        files = base_path.rglob(pattern)
+    else:
+        files = base_path.glob(pattern)
+
+    # gitignore 필터링 (TODO: 구현)
+    if respect_gitignore:
+        files = filter_gitignore(files)
+
+    return [str(f) for f in sorted(files, key=lambda x: x.stat().st_mtime, reverse=True)]
+```
+
+##### 1.5 코드 분석 (analyzer.py)
+
+**결정**: Python AST 파싱 + 의존성 분석
+
+**기능**:
+- **함수/클래스 목록 추출**: AST를 파싱하여 정의된 함수, 클래스 이름 추출
+- **import 분석**: 파일의 의존성 파악
+- **타입 체크 통합** (선택적): mypy 결과 파싱
+- **복잡도 측정** (선택적): 함수별 라인 수, 사이클로매틱 복잡도
+
+**구현**:
+```python
+import ast
+
+def analyze_python_file(file_path: str) -> dict:
+    """
+    Python 파일 분석 도구
+
+    Returns:
+        {
+            "functions": [함수명 목록],
+            "classes": [클래스명 목록],
+            "imports": [import 목록],
+            "complexity": {함수명: 복잡도}
+        }
+    """
+    with open(file_path, "r") as f:
+        tree = ast.parse(f.read())
+
+    functions = [node.name for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)]
+    classes = [node.name for node in ast.walk(tree) if isinstance(node, ast.ClassDef)]
+    imports = [node.name for node in ast.walk(tree) if isinstance(node, (ast.Import, ast.ImportFrom))]
+
+    return {
+        "functions": functions,
+        "classes": classes,
+        "imports": imports
+    }
+```
+
+**대안 검토**:
+- **정적 분석 도구 통합** (pylint, flake8): 복잡도 증가, 에이전트가 직접 코드 이해하는 것이 더 효과적
+- **언어 서버 프로토콜 (LSP)**: 과도한 복잡도, 현재 범위에서 불필요
+
+**구현 고려사항**:
+- Python 전용 (현재 프로젝트는 Python만 사용)
+- 구문 오류 시 graceful degradation (부분 정보라도 반환)
+
+#### 2. 검색/탐색 도구 (코딩 도구의 일부)
 
 **Glob (파일 패턴 매칭)**
 - **기능**: 파일 이름 패턴으로 파일 찾기
@@ -449,30 +588,313 @@ def grep(pattern: str, path: str = ".", output_mode: str = "files_with_matches",
     return result.stdout
 ```
 
-**Task (Explore 에이전트)**
-- **기능**: 코드베이스를 체계적으로 탐색하는 전문 에이전트
-- **입력**: 탐색 목적 (예: "인증 로직 찾기", "API 엔드포인트 구조 이해")
-- **출력**: 탐색 결과 요약
-- **특징**: 여러 검색을 조합하여 컨텍스트 파악
+#### 3. GitHub 도구 (github/)
+
+메인 에이전트가 버전 관리 및 배포를 처리할 때 사용하는 도구들입니다.
+
+##### 3.1 Git 클라이언트 (client.py)
+
+**결정**: PyGithub 라이브러리 사용
+
+**기능**:
+- GitHub 리포지토리 접근
+- 브랜치 조회 및 생성
+- 파일 내용 조회 (선택적)
+
+**구현**:
+```python
+from github import Github
+
+class GitHubClient:
+    def __init__(self, token: str, repo_name: str):
+        self.client = Github(token)
+        self.repo = self.client.get_repo(repo_name)
+
+    def get_branch(self, branch_name: str):
+        return self.repo.get_branch(branch_name)
+
+    def create_branch(self, branch_name: str, source_branch: str = "main"):
+        source = self.repo.get_branch(source_branch)
+        return self.repo.create_git_ref(f"refs/heads/{branch_name}", source.commit.sha)
+```
+
+##### 3.2 커밋 생성 (commit.py)
+
+**기능**: 로컬 변경사항을 Git 커밋으로 생성
+
+**구현**: GitPython 사용 (로컬 Git 작업)
 
 ```python
-async def explore_codebase(query: str, thoroughness: str = "medium") -> str:
+from git import Repo
+
+def create_commit(message: str, files: list[str] = None):
     """
-    코드베이스 탐색 도구 (Task 에이전트)
+    Git 커밋 생성 도구
 
     Args:
-        query: 탐색 목적 (자연어)
-        thoroughness: 탐색 깊이 (quick, medium, very thorough)
+        message: 커밋 메시지
+        files: 커밋할 파일 목록 (None이면 전체)
+    """
+    repo = Repo(".")
+
+    if files:
+        repo.index.add(files)
+    else:
+        repo.git.add(A=True)
+
+    repo.index.commit(message)
+    return repo.head.commit.hexsha
+```
+
+##### 3.3 Pull Request 생성 (pr.py)
+
+**기능**: GitHub에 Pull Request 생성
+
+**구현**:
+```python
+def create_pull_request(title: str, body: str, head_branch: str, base_branch: str = "main"):
+    """
+    PR 생성 도구
+
+    Args:
+        title: PR 제목
+        body: PR 설명
+        head_branch: 소스 브랜치
+        base_branch: 타겟 브랜치
+    """
+    client = GitHubClient(os.environ["GITHUB_TOKEN"], os.environ["GITHUB_REPO"])
+    pr = client.repo.create_pull(
+        title=title,
+        body=body,
+        head=head_branch,
+        base=base_branch
+    )
+    return pr.html_url
+```
+
+##### 3.4 배포 상태 모니터링 (deployment.py)
+
+**결정**: GitHub Actions Workflow 상태 Polling
+
+**근거**:
+- Webhook은 서버 설정 필요 (복잡도 증가)
+- Polling은 구현이 간단하고 안정적
+
+**구현**:
+```python
+import asyncio
+
+async def monitor_deployment(pr_number: int, check_interval: int = 30):
+    """
+    배포 상태 모니터링 도구 (Polling 방식)
+
+    Args:
+        pr_number: PR 번호
+        check_interval: 체크 간격 (초)
 
     Returns:
-        탐색 결과 요약
+        배포 상태 (success/failure), 실패 시 원인
     """
-    # Task 에이전트를 별도로 실행
-    # 여러 Glob, Grep 조합하여 체계적 탐색
+    client = GitHubClient(os.environ["GITHUB_TOKEN"], os.environ["GITHUB_REPO"])
+
+    while True:
+        pr = client.repo.get_pull(pr_number)
+
+        # 머지 여부 확인
+        if not pr.merged:
+            await asyncio.sleep(check_interval)
+            continue
+
+        # Workflow 실행 조회
+        workflows = client.repo.get_workflow_runs(branch=pr.base.ref)
+        latest_run = workflows[0]
+
+        if latest_run.status == "completed":
+            if latest_run.conclusion == "success":
+                return {"status": "success"}
+            else:
+                return {
+                    "status": "failure",
+                    "reason": latest_run.conclusion,
+                    "logs_url": latest_run.html_url
+                }
+
+        await asyncio.sleep(check_interval)
+```
+
+**대안 검토**:
+- **Webhook**: 실시간성 높지만 서버 설정 복잡
+- **GitHub App**: 과도한 복잡도
+
+#### 4. 로깅 도구 (logging/)
+
+로거 에이전트(Haiku)와 메인 에이전트가 작업 로그를 관리할 때 사용하는 도구들입니다.
+
+##### 4.1 로그 작성 (writer.py)
+
+**기능**: 작업 로그 파일 생성
+
+**결정**: 시간 기반 로그 파일 + 마크다운 형식
+
+**로그 파일 구조**:
+- 파일명: `YYYY-MM-DD-HHmmss.md` (예: `2025-11-15-143022.md`)
+- 내용: 작업 일시, 작업 요청, 작업 요약
+
+**마크다운 템플릿**:
+```markdown
+# 작업 로그
+
+**일시**: 2025-11-15 14:30:22
+**작업 요청**: "main.py에 주석 추가"
+
+## 수행한 작업
+
+- main.py 파일에 docstring 추가
+- 함수별 주석 작성 완료
+
+## 결정 사항
+
+- Google 스타일 docstring 형식 사용
+
+## 발생한 이슈
+
+- 없음
+
+## 다음 작업 참고사항
+
+- 모든 함수에 타입 힌트가 추가되어 있음
+```
+
+**구현**:
+```python
+from pathlib import Path
+from datetime import datetime
+
+def write_log(task_request: str, work_summary: str, decisions: list[str] = None,
+              issues: list[str] = None, notes: list[str] = None) -> str:
+    """
+    작업 로그 작성 도구
+
+    Args:
+        task_request: 작업 요청 내용
+        work_summary: 수행한 작업 요약
+        decisions: 결정 사항 목록
+        issues: 발생한 이슈 목록
+        notes: 다음 작업 참고사항 목록
+
+    Returns:
+        로그 파일 경로
+    """
+    log_dir = Path(".ccw/logs")
+    log_dir.mkdir(parents=True, exist_ok=True)
+
+    # 파일명: YYYY-MM-DD-HHmmss.md
+    timestamp = datetime.now()
+    filename = timestamp.strftime("%Y-%m-%d-%H%M%S.md")
+    log_file = log_dir / filename
+
+    # 마크다운 로그 생성
+    content = f"""# 작업 로그
+
+**일시**: {timestamp.strftime("%Y-%m-%d %H:%M:%S")}
+**작업 요청**: "{task_request}"
+
+## 수행한 작업
+
+{work_summary}
+
+## 결정 사항
+
+{_format_list(decisions) if decisions else "- 없음"}
+
+## 발생한 이슈
+
+{_format_list(issues) if issues else "- 없음"}
+
+## 다음 작업 참고사항
+
+{_format_list(notes) if notes else "- 없음"}
+"""
+
+    log_file.write_text(content)
+    return str(log_file)
+
+def _format_list(items: list[str]) -> str:
+    """리스트를 마크다운 불릿 포인트로 변환"""
+    return "\n".join(f"- {item}" for item in items)
+```
+
+**근거**:
+- **시간 기반**: 이슈 ID보다 작업 발생 시간이 더 직관적
+- **간결성**: 로거 에이전트(Haiku)가 간결하게 요약 작성
+- **Git 추적**: 각 로그가 독립 파일이라 Git diff 확인 용이
+- **토큰 효율성**: 정형화된 템플릿으로 토큰 사용량 예측 가능
+
+##### 4.2 로그 읽기 (reader.py)
+
+**기능**: 마지막 N개의 작업 로그 읽기 (컨텍스트 주입용)
+
+**구현**:
+```python
+def read_recent_logs(count: int = 2, max_tokens: int = 2000) -> list[str]:
+    """
+    최근 작업 로그 읽기 도구
+
+    Args:
+        count: 읽을 로그 개수
+        max_tokens: 로그당 최대 토큰 수 (대략 4글자 = 1토큰)
+
+    Returns:
+        로그 내용 목록
+    """
+    log_dir = Path(".ccw/logs")
+
+    if not log_dir.exists():
+        return []
+
+    log_files = sorted(
+        log_dir.glob("*.md"),
+        key=lambda x: x.stat().st_mtime,
+        reverse=True
+    )
+
+    logs = []
+    for log_file in log_files[:count]:
+        content = log_file.read_text()
+
+        # 토큰 제한 (대략 4글자 = 1토큰)
+        max_chars = max_tokens * 4
+        if len(content) > max_chars:
+            content = content[:max_chars] + "\n\n...(생략)"
+
+        logs.append(content)
+
+    return logs
+```
+
+##### 4.3 로그 파싱 (parser.py)
+
+**기능**: 로그에서 주요 정보 추출 (컨텍스트 최적화)
+
+**구현**:
+```python
+def parse_log(log_content: str) -> dict:
+    """
+    로그 파싱 도구
+
+    Returns:
+        {
+            "decisions": [결정사항 목록],
+            "issues": [발생한 이슈 목록],
+            "discussions": [논의 내용 목록]
+        }
+    """
+    # 마크다운 섹션 파싱
+    # TODO: 정규표현식 또는 마크다운 파서 사용
     pass
 ```
 
-#### 3. 실행/명령 도구
+#### 5. Bash 도구 (bash/)
 
 **Bash (터미널 명령)**
 - **기능**: 터미널 명령 실행 (git, npm, docker, pytest 등)
@@ -1099,13 +1521,55 @@ jobs:
 - [Python Async Best Practices](https://docs.python.org/3/library/asyncio-dev.html)
 - [GitHub API Best Practices](https://docs.github.com/en/rest/guides/best-practices-for-integrators)
 
+## 변경 이력
+
+### 2025-11-15 업데이트
+
+**주요 변경사항**:
+1. **에이전트 아키텍처 최적화**: 4개 에이전트 → **2개 에이전트** (메인 Sonnet + 로거 Haiku)
+   - 비용 최적화: 로깅에 Haiku 사용하여 토큰 비용 절감
+   - 복잡도 감소: 에이전트 간 컨텍스트 전달 오버헤드 최소화
+
+2. **코딩 도구 상세화**: 메인 에이전트가 사용하는 5가지 코딩 도구 정의
+   - file_io.py: 파일 읽기/쓰기/편집
+   - search.py: Grep, Glob 기반 코드 검색
+   - editor.py: 문자열 치환 기반 코드 편집
+   - navigator.py: Glob 패턴 기반 디렉토리 탐색
+   - analyzer.py: Python AST 파싱 및 의존성 분석
+
+3. **도구 카테고리 재구성**: 4개 카테고리로 명확히 분류
+   - coding/: 파일 I/O, 검색, 편집, 탐색, 분석
+   - github/: 커밋, PR, 배포 모니터링
+   - logging/: 로그 읽기/쓰기/파싱
+   - bash/: 서버 명령 실행 및 검증
+
+4. **GitHub 도구 추가**: GitPython (로컬) + PyGithub (원격) 조합
+   - 커밋 생성: GitPython 사용
+   - PR 생성 및 배포 모니터링: PyGithub 사용
+
+5. **작업 로그 구조 단순화**: 이슈 기반 → 시간 기반
+   - 파일명: `issue-{id}-{slug}.md` → `YYYY-MM-DD-HHmmss.md`
+   - 내용: 작업 일시, 작업 요청, 작업 요약 (정형화된 마크다운 템플릿)
+   - 각 작업마다 독립된 로그 파일 생성
+
+6. **텔레그램 "연결" 개념 제거**: 텔레그램은 stateless HTTP 기반
+   - 잘못된 "연결 끊김 감지" 로직 제거
+   - 서버 재시작 시 작업 중단 처리로 대체
+
+**근거**:
+- 비용과 성능의 균형: 2개 에이전트가 최적
+- 명확한 책임 분리: 메인 작업 vs 로깅
+- 도구 재사용성: 각 도구를 독립적으로 테스트 가능
+- 로그 단순화: 시간 기반이 이슈 기반보다 직관적
+- 정확성: 텔레그램의 실제 동작 방식 반영
+
 ## 다음 단계
 
 Phase 0 연구가 완료되었습니다. 다음 Phase 1에서 진행할 작업:
 
 1. **data-model.md 생성**: 주요 엔티티 및 데이터 모델 설계
-2. **contracts/ 생성**: 에이전트 간 인터페이스, API 스키마 정의
+2. **contracts/ 생성**: 텔레그램 명령어, Claude API, GitHub API 계약 정의
 3. **quickstart.md 생성**: 개발 환경 설정 및 빠른 시작 가이드
-4. **agent context 업데이트**: 기술 스택 정보를 Claude Code 에이전트 컨텍스트에 추가
+4. **CLAUDE.md 업데이트**: 기술 스택 정보를 Claude Code 에이전트 컨텍스트에 추가
 
-모든 NEEDS CLARIFICATION 항목이 해결되었으며, 구체적인 기술 스택과 구현 방법이 결정되었습니다.
+**모든 plan.md의 조사 항목이 해결되었으며, 구체적인 기술 스택과 구현 방법이 결정되었습니다.**
