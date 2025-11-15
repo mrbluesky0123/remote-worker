@@ -3,6 +3,7 @@
 **기능 브랜치**: `001-telegram-claude-worker`
 **입력 문서**: plan.md, spec.md, data-model.md, research.md, contracts/, quickstart.md
 **생성일**: 2025-11-10
+**최종 업데이트**: 2025-11-15 (아키텍처 최적화: 2개 에이전트, 도구 세분화, 시간 기반 로그)
 
 ## 작업 형식: `[ID] [P?] [Story] 설명`
 
@@ -35,15 +36,15 @@
 
 **목적**: 프로젝트 구조 및 기본 설정
 
-- [ ] T001 프로젝트 루트에 pyproject.toml 생성 (uv 기반 Python 3.13 프로젝트)
-- [ ] T002 프로젝트 루트에 .env.example 파일 생성 (환경 변수 템플릿)
-- [ ] T003 [P] 프로젝트 루트에 .gitignore 파일 생성 (.env, .ccw/app.log, __pycache__ 등)
-- [ ] T004 [P] 프로젝트 루트에 README.md 생성 (프로젝트 설명)
-- [ ] T005 src/ 디렉토리 구조 생성 (agents/, tools/, telegram/, git/, tasks/, commands/, models/, utils/)
-- [ ] T006 tests/ 디렉토리 구조 생성 (unit/, integration/, contract/)
-- [ ] T007 [P] .ccw/logs/ 디렉토리 생성 (작업 로그 저장소)
-- [ ] T008 [P] src/utils/config.py 생성 (환경 변수 로드 및 검증)
-- [ ] T009 [P] src/utils/errors.py 생성 (커스텀 예외 클래스 정의)
+- [X] T001 프로젝트 루트에 pyproject.toml 생성 (uv 기반 Python 3.13 프로젝트)
+- [X] T002 프로젝트 루트에 .env.example 파일 생성 (환경 변수 템플릿)
+- [X] T003 [P] 프로젝트 루트에 .gitignore 파일 생성 (.env, .ccw/app.log, __pycache__ 등)
+- [X] T004 [P] 프로젝트 루트에 README.md 생성 (프로젝트 설명)
+- [X] T005 src/ 디렉토리 구조 생성 (agents/, tools/, telegram/, git/, tasks/, commands/, models/, utils/)
+- [X] T006 tests/ 디렉토리 구조 생성 (unit/, integration/, contract/)
+- [X] T007 [P] .ccw/logs/ 디렉토리 생성 (작업 로그 저장소)
+- [X] T008 [P] src/utils/config.py 생성 (환경 변수 로드 및 검증)
+- [X] T009 [P] src/utils/errors.py 생성 (커스텀 예외 클래스 정의)
 
 ---
 
@@ -60,33 +61,44 @@
 
 ### 2.2 도구(Tools) 인프라
 
+**코딩 도구 (5개 세분화)**:
 - [ ] T012 [P] src/tools/__init__.py 생성 (TOOLS, TOOL_FUNCTIONS 정의)
-- [ ] T013 [P] src/tools/file_tools.py 생성 (Read, Write, Edit 도구 구현)
-- [ ] T014 [P] src/tools/search_tools.py 생성 (Glob, Grep 도구 구현)
-- [ ] T015 [P] src/tools/exec_tools.py 생성 (Bash, BashOutput 도구 구현)
+- [ ] T013 [P] src/tools/coding/file_io.py 생성 (read_file, write_file, edit_file 도구 구현)
+- [ ] T014 [P] src/tools/coding/search.py 생성 (glob_files, grep 도구 구현)
+- [ ] T015 [P] src/tools/coding/editor.py 생성 (문자열 치환 기반 편집 도구)
+- [ ] T016 [P] src/tools/coding/navigator.py 생성 (디렉토리 탐색 도구)
+- [ ] T017 [P] src/tools/coding/analyzer.py 생성 (Python AST 파싱, 의존성 분석)
+
+**기타 도구**:
+- [ ] T018 [P] src/tools/bash/executor.py 생성 (bash, bash_output 도구 구현)
+- [ ] T019 [P] src/tools/bash/validator.py 생성 (명령어 검증 도구)
 
 ### 2.3 텔레그램 봇 기반 인프라
 
-- [ ] T016 src/telegram/auth.py 생성 (화이트리스트 사용자 인증 구현)
-- [ ] T017 src/telegram/bot.py 생성 (텔레그램 봇 초기화 및 폴링 시작)
-- [ ] T018 src/telegram/handlers.py 생성 (명령어 핸들러 스켈레톤)
-- [ ] T019 src/telegram/__init__.py 생성 (텔레그램 모듈 초기화)
+- [ ] T020 src/telegram/auth.py 생성 (화이트리스트 사용자 인증 구현)
+- [ ] T021 src/telegram/bot.py 생성 (텔레그램 봇 초기화 및 폴링 시작)
+- [ ] T022 src/telegram/handlers.py 생성 (명령어 핸들러 스켈레톤)
+- [ ] T023 src/telegram/__init__.py 생성 (텔레그램 모듈 초기화)
 
 ### 2.4 데이터 모델
 
-- [ ] T020 [P] src/models/task.py 생성 (Task, TaskStatus, AgentType 모델)
-- [ ] T021 [P] src/models/log.py 생성 (TaskLog 모델 및 마크다운 변환)
-- [ ] T022 [P] src/models/session.py 생성 (AgentSession 모델)
-- [ ] T023 [P] src/models/__init__.py 생성 (모델 모듈 초기화)
+- [ ] T024 [P] src/models/task.py 생성 (Task, TaskStatus, AgentType 모델)
+- [ ] T025 [P] src/models/log.py 생성 (TaskLog 모델 및 시간 기반 마크다운 변환)
+- [ ] T026 [P] src/models/session.py 생성 (AgentSession 모델)
+- [ ] T027 [P] src/models/__init__.py 생성 (모델 모듈 초기화)
 
 ### 2.5 작업 관리 기반
 
-- [ ] T024 src/tasks/executor.py 생성 (작업 실행 및 타임아웃 관리 기본 구조)
-- [ ] T025 src/tasks/__init__.py 생성 (작업 모듈 초기화)
+- [ ] T028 src/tasks/executor.py 생성 (작업 실행 및 타임아웃 관리 기본 구조)
+- [ ] T029 src/tasks/__init__.py 생성 (작업 모듈 초기화)
 
-### 2.6 메인 진입점
+### 2.6 상수 및 설정
 
-- [ ] T026 src/main.py 생성 (애플리케이션 진입점, 봇 시작)
+- [ ] T030 [P] src/constants.py 생성 (MAIN_AGENT_MODEL, LOGGER_AGENT_MODEL, 타임아웃, 로그 토큰 제한 등)
+
+### 2.7 메인 진입점
+
+- [ ] T031 src/main.py 생성 (애플리케이션 진입점, 봇 시작)
 
 **Checkpoint**: 기반 인프라 완료 - 이제 사용자 스토리 구현을 병렬로 시작할 수 있습니다
 
@@ -100,28 +112,29 @@
 
 **브랜치 옵션**: `001-telegram-claude-worker-us1` (선택사항, 메인에서 직접 작업 가능)
 
-### 3.1 코딩 에이전트 구현
+### 3.1 메인 에이전트 구현 (Sonnet 4)
 
-- [ ] T027 [P] [US1] src/agents/coding_agent.py 생성 (CodingAgent 클래스, execute 메서드, 도구 통합)
-- [ ] T028 [US1] src/agents/coding_agent.py에 도구 호출 루프 구현 (Claude API tool_use 처리)
-- [ ] T029 [US1] src/agents/coding_agent.py에 시스템 프롬프트 정의 (한글 프롬프트, 30분 제약, 커밋 금지)
+- [ ] T032 [P] [US1] src/agents/main/executor.py 생성 (MainAgent 클래스, execute 메서드, 모든 도구 통합)
+- [ ] T033 [US1] src/agents/main/executor.py에 도구 호출 루프 구현 (Claude API tool_use 처리)
+- [ ] T034 [US1] src/agents/main/prompts.py 생성 (메인 에이전트 시스템 프롬프트 정의: 한글, 30분 제약, 커밋 금지)
+- [ ] T035 [US1] src/agents/main/executor.py에 코딩 도구 통합 (file_io, search, editor, navigator, analyzer)
 
 ### 3.2 텔레그램 /task 명령어 핸들러
 
-- [ ] T030 [US1] src/telegram/handlers.py에 task_command 핸들러 구현 (작업 수신, 검증, 실행 시작)
-- [ ] T031 [US1] src/telegram/handlers.py에 작업 진행 중 체크 로직 추가 (TaskManager 싱글톤 사용)
-- [ ] T032 [US1] src/telegram/handlers.py에 작업 완료 알림 전송 로직 추가
+- [ ] T036 [US1] src/telegram/handlers.py에 task_command 핸들러 구현 (작업 수신, 검증, 실행 시작)
+- [ ] T037 [US1] src/telegram/handlers.py에 작업 진행 중 체크 로직 추가 (TaskManager 싱글톤 사용)
+- [ ] T038 [US1] src/telegram/handlers.py에 작업 완료 알림 전송 로직 추가
 
 ### 3.3 작업 실행 관리
 
-- [ ] T033 [US1] src/tasks/executor.py에 execute_task_with_timeout 함수 구현 (asyncio.wait_for 사용)
-- [ ] T034 [US1] src/tasks/executor.py에 TaskManager 싱글톤 클래스 구현 (현재 작업 추적)
-- [ ] T035 [US1] src/tasks/executor.py에 연결 끊김 감지 및 롤백 로직 추가
+- [ ] T039 [US1] src/tasks/executor.py에 execute_task_with_timeout 함수 구현 (asyncio.wait_for 사용)
+- [ ] T040 [US1] src/tasks/executor.py에 TaskManager 싱글톤 클래스 구현 (현재 작업 추적)
+- [ ] T041 [US1] src/tasks/executor.py에 서버 재시작 감지 및 중단 작업 로깅 추가
 
 ### 3.4 통합 및 검증
 
-- [ ] T036 [US1] src/telegram/bot.py에 /task 명령어 핸들러 등록
-- [ ] T037 [US1] src/main.py에서 봇 시작 및 환경 변수 검증 추가
+- [ ] T042 [US1] src/telegram/bot.py에 /task 명령어 핸들러 등록
+- [ ] T043 [US1] src/main.py에서 봇 시작 및 환경 변수 검증 추가
 
 **Checkpoint**: US1 완료 - 텔레그램으로 작업 지시를 보내고 결과를 받을 수 있습니다 (MVP!)
 
@@ -152,28 +165,29 @@
 
 ## Phase 5: User Story 3 - 작업 로그 문서화 (우선순위: P1)
 
-**목표**: 작업 완료 후 마크다운 작업 로그 자동 생성/업데이트
+**목표**: 작업 완료 후 마크다운 작업 로그 자동 생성 (시간 기반)
 
-**독립 테스트**: 단일 작업 완료 후 .ccw/logs/에 마크다운 로그 파일이 생성되는지 검증
+**독립 테스트**: 단일 작업 완료 후 .ccw/logs/에 시간 기반 마크다운 로그 파일이 생성되는지 검증
 
 **브랜치 옵션**: `001-telegram-claude-worker-us3` (US1, US2와 병렬 개발 가능)
 
-### 5.1 로그 에이전트 구현
+### 5.1 로거 에이전트 구현 (Haiku 4 - 비용 최적화)
 
-- [ ] T043 [P] [US3] src/agents/log_agent.py 생성 (LogAgent 클래스)
-- [ ] T044 [US3] src/agents/log_agent.py에 execute 메서드 구현 (로그 생성/업데이트)
-- [ ] T045 [US3] src/agents/log_agent.py에 summarize_task 메서드 구현 (작업 요약)
-- [ ] T046 [US3] src/agents/log_agent.py에 extract_decisions 메서드 구현 (결정사항 추출)
+- [ ] T051 [P] [US3] src/agents/logger/executor.py 생성 (LoggerAgent 클래스)
+- [ ] T052 [US3] src/agents/logger/executor.py에 execute 메서드 구현 (시간 기반 로그 생성)
+- [ ] T053 [US3] src/agents/logger/prompts.py 생성 (간결한 로그 작성 프롬프트 정의)
+- [ ] T054 [US3] src/agents/logger/executor.py에 작업 요약 및 결정사항 추출 로직 추가
 
-### 5.2 로그 생성 통합
+### 5.2 로그 도구 구현
 
-- [ ] T047 [US3] src/tasks/logger.py 생성 (작업 로그 생성/업데이트 헬퍼)
-- [ ] T048 [US3] src/tasks/executor.py에서 작업 완료 시 LogAgent 호출 추가
+- [ ] T055 [P] [US3] src/tools/logging/writer.py 생성 (write_log 함수: 시간 기반 파일명, 마크다운 템플릿)
+- [ ] T056 [P] [US3] src/tools/logging/reader.py 생성 (read_recent_logs 함수: 최신 N개 읽기, 토큰 제한)
+- [ ] T057 [P] [US3] src/tools/logging/parser.py 생성 (parse_log 함수: 로그에서 주요 정보 추출)
 
-### 5.3 로그 파일 관리
+### 5.3 로그 생성 통합
 
-- [ ] T049 [US3] src/models/log.py에 기존 로그 로드 메서드 구현 (TaskLog.load)
-- [ ] T050 [US3] src/models/log.py에 이슈 ID 자동 추론 로직 추가
+- [ ] T058 [US3] src/tasks/executor.py에서 작업 완료 시 LoggerAgent 호출 추가
+- [ ] T059 [US3] src/models/log.py에 시간 기반 로그 파일 로드 메서드 구현 (TaskLog.load_recent)
 
 **Checkpoint**: US3 완료 - 모든 작업이 자동으로 문서화됩니다
 
@@ -187,36 +201,31 @@
 
 **브랜치 옵션**: `001-telegram-claude-worker-us4`
 
-**의존성**: US3 (로그 에이전트)가 완료되어야 커밋 메시지 생성 가능
+**의존성**: US3 (로거 에이전트)가 완료되어야 커밋 메시지 생성 가능
 
-### 6.1 Git 관리 모듈
+### 6.1 GitHub 도구 구현
 
-- [ ] T051 [P] [US4] src/git/manager.py 생성 (GitManager 클래스)
-- [ ] T052 [P] [US4] src/git/diff.py 생성 (Git diff 분석 및 커밋 메시지 생성)
-- [ ] T053 [US4] src/git/manager.py에 commit 메서드 구현 (git commit 실행)
-- [ ] T054 [US4] src/git/manager.py에 create_branch 메서드 구현 (git branch 생성)
-- [ ] T055 [US4] src/git/manager.py에 create_merge_request 메서드 구현 (PyGitHub 사용)
+- [ ] T060 [P] [US4] src/tools/github/client.py 생성 (GitHubClient 클래스: PyGithub 래핑)
+- [ ] T061 [P] [US4] src/tools/github/commit.py 생성 (create_commit 함수: GitPython 사용)
+- [ ] T062 [P] [US4] src/tools/github/pr.py 생성 (create_pull_request 함수: PyGithub 사용)
+- [ ] T063 [P] [US4] src/tools/github/deployment.py 생성 (monitor_deployment 함수: Polling 방식)
 
 ### 6.2 텔레그램 명령어 핸들러
 
-- [ ] T056 [P] [US4] src/telegram/handlers.py에 diff_command 핸들러 구현 (/diff 명령)
-- [ ] T057 [P] [US4] src/telegram/handlers.py에 commit_command 핸들러 구현 (/commit 명령)
-- [ ] T058 [P] [US4] src/telegram/handlers.py에 branch_command 핸들러 구현 (/branch 명령)
-- [ ] T059 [P] [US4] src/telegram/handlers.py에 mr_command 핸들러 구현 (/mr 명령)
+- [ ] T064 [P] [US4] src/telegram/handlers.py에 diff_command 핸들러 구현 (/diff 명령)
+- [ ] T065 [P] [US4] src/telegram/handlers.py에 commit_command 핸들러 구현 (/commit 명령)
+- [ ] T066 [P] [US4] src/telegram/handlers.py에 branch_command 핸들러 구현 (/branch 명령)
+- [ ] T067 [P] [US4] src/telegram/handlers.py에 mr_command 핸들러 구현 (/mr 명령)
 
-### 6.3 커밋 메시지 생성
+### 6.3 메인 에이전트 GitHub 도구 통합
 
-- [ ] T060 [US4] src/git/diff.py에 analyze_diff 함수 구현 (변경사항 분석)
-- [ ] T061 [US4] src/git/diff.py에 generate_commit_message 함수 구현 (LogAgent 사용)
+- [ ] T068 [US4] src/agents/main/executor.py에 GitHub 도구 통합 (commit, pr, deployment)
+- [ ] T069 [US4] src/agents/main/executor.py에 커밋 메시지 생성 로직 추가 (로거 에이전트 사용)
 
-### 6.4 GitHub Actions 통합
+### 6.4 배포 모니터링 및 알림
 
-- [ ] T062 [US4] src/git/manager.py에 monitor_deployment 메서드 구현 (GitHub Actions 상태 조회)
-- [ ] T063 [US4] src/telegram/handlers.py에 배포 알림 로직 추가 (성공/실패)
-
-### 6.5 핸들러 등록
-
-- [ ] T064 [US4] src/telegram/bot.py에 /diff, /commit, /branch, /mr 핸들러 등록
+- [ ] T070 [US4] src/telegram/handlers.py에 배포 알림 로직 추가 (성공/실패)
+- [ ] T071 [US4] src/telegram/bot.py에 /diff, /commit, /branch, /mr 핸들러 등록
 
 **Checkpoint**: US4 완료 - 텔레그램으로 Git 작업을 수행하고 GitHub MR을 생성할 수 있습니다
 
@@ -230,25 +239,12 @@
 
 **브랜치 옵션**: `001-telegram-claude-worker-us5` (언제든지 독립적으로 개발 가능)
 
-### 7.1 명령어 검증 모듈
+### 7.1 메인 에이전트 Bash 도구 통합
 
-- [ ] T065 [P] [US5] src/commands/validator.py 생성 (CommandValidator 클래스)
-- [ ] T066 [US5] src/commands/validator.py에 is_safe 메서드 구현 (파괴적/대화형 명령 차단)
-- [ ] T067 [US5] src/commands/validator.py에 차단 규칙 정의 (DESTRUCTIVE_COMMANDS, INTERACTIVE_COMMANDS, PROTECTED_PATHS)
+- [ ] T072 [US5] src/agents/main/executor.py에 Bash 도구 통합 (bash, bash_output, validator)
+- [ ] T073 [US5] src/agents/main/prompts.py에 안전한 명령 실행 가이드라인 추가
 
-### 7.2 서버 명령 실행 모듈
-
-- [ ] T068 [P] [US5] src/commands/executor.py 생성 (ServerCommandExecutor 클래스)
-- [ ] T069 [US5] src/commands/executor.py에 execute 메서드 구현 (subprocess로 명령 실행)
-- [ ] T070 [US5] src/commands/executor.py에 출력 캡처 및 포맷팅 로직 추가
-
-### 7.3 서버 에이전트 구현
-
-- [ ] T071 [US5] src/agents/server_agent.py 생성 (ServerAgent 클래스)
-- [ ] T072 [US5] src/agents/server_agent.py에 execute 메서드 구현 (명령 검증 및 실행)
-- [ ] T073 [US5] src/agents/server_agent.py에 suggest_alternative 메서드 구현 (차단 시 대안 제시)
-
-### 7.4 텔레그램 명령어 핸들러
+### 7.2 텔레그램 명령어 핸들러
 
 - [ ] T074 [US5] src/telegram/handlers.py에 exec_command 핸들러 구현 (/exec 명령)
 - [ ] T075 [US5] src/telegram/bot.py에 /exec 핸들러 등록
@@ -257,26 +253,20 @@
 
 ---
 
-## Phase 8: 추가 기능 및 에이전트
+## Phase 8: 추가 기능
 
-**목적**: 나머지 에이전트 및 부가 기능 구현
+**목적**: 오류 처리 및 부가 기능 구현
 
-### 8.1 오류 분석 에이전트
+### 8.1 오류 처리 통합 (메인 에이전트 사용)
 
-- [ ] T076 [P] src/agents/error_agent.py 생성 (ErrorAgent 클래스)
-- [ ] T077 src/agents/error_agent.py에 analyze 메서드 구현 (예외 분석)
-- [ ] T078 src/agents/error_agent.py에 format_for_telegram 메서드 구현 (텔레그램 포맷)
+- [ ] T076 src/tasks/executor.py에 전역 예외 핸들러 추가 (메인 에이전트가 오류 분석)
+- [ ] T077 src/telegram/handlers.py에 에러 핸들러 추가 (텔레그램 오류 알림)
+- [ ] T078 src/telegram/bot.py에 에러 핸들러 등록
 
-### 8.2 오류 처리 통합
+### 8.2 로그 조회 기능
 
-- [ ] T079 src/tasks/executor.py에 전역 예외 핸들러 추가 (ErrorAgent 사용)
-- [ ] T080 src/telegram/handlers.py에 에러 핸들러 추가 (텔레그램 오류 알림)
-- [ ] T081 src/telegram/bot.py에 에러 핸들러 등록
-
-### 8.3 로그 조회 기능
-
-- [ ] T082 [P] src/telegram/handlers.py에 logs_command 핸들러 구현 (/logs 명령)
-- [ ] T083 src/telegram/bot.py에 /logs 핸들러 등록
+- [ ] T079 [P] src/telegram/handlers.py에 logs_command 핸들러 구현 (/logs 명령)
+- [ ] T080 src/telegram/bot.py에 /logs 핸들러 등록
 
 ---
 
@@ -284,35 +274,42 @@
 
 **목적**: 단위 테스트, 통합 테스트, 계약 테스트 작성
 
-### 9.1 단위 테스트
+### 9.1 단위 테스트 - 에이전트
 
-- [ ] T084 [P] tests/unit/test_agents/test_coding_agent.py 생성 (CodingAgent 테스트)
-- [ ] T085 [P] tests/unit/test_agents/test_log_agent.py 생성 (LogAgent 테스트)
-- [ ] T086 [P] tests/unit/test_agents/test_server_agent.py 생성 (ServerAgent 테스트)
-- [ ] T087 [P] tests/unit/test_agents/test_error_agent.py 생성 (ErrorAgent 테스트)
-- [ ] T088 [P] tests/unit/test_tools/test_file_tools.py 생성 (파일 도구 테스트)
-- [ ] T089 [P] tests/unit/test_tools/test_search_tools.py 생성 (검색 도구 테스트)
-- [ ] T090 [P] tests/unit/test_tools/test_exec_tools.py 생성 (실행 도구 테스트)
-- [ ] T091 [P] tests/unit/test_telegram/test_auth.py 생성 (인증 테스트)
-- [ ] T092 [P] tests/unit/test_telegram/test_handlers.py 생성 (핸들러 테스트)
-- [ ] T093 [P] tests/unit/test_commands/test_validator.py 생성 (명령어 검증 테스트)
-- [ ] T094 [P] tests/unit/test_git/test_manager.py 생성 (Git 관리 테스트)
-- [ ] T095 [P] tests/unit/test_tasks/test_executor.py 생성 (작업 실행 테스트)
-- [ ] T096 [P] tests/unit/test_tasks/test_context.py 생성 (컨텍스트 테스트)
-- [ ] T097 [P] tests/unit/test_models/test_task.py 생성 (Task 모델 테스트)
-- [ ] T098 [P] tests/unit/test_models/test_log.py 생성 (TaskLog 모델 테스트)
+- [ ] T081 [P] tests/unit/agents/test_main_agent.py 생성 (메인 에이전트 테스트)
+- [ ] T082 [P] tests/unit/agents/test_logger_agent.py 생성 (로거 에이전트 테스트)
 
-### 9.2 통합 테스트
+### 9.2 단위 테스트 - 도구
 
-- [ ] T099 [P] tests/integration/test_telegram_workflow.py 생성 (텔레그램 → 에이전트 전체 플로우)
-- [ ] T100 [P] tests/integration/test_agent_execution.py 생성 (에이전트 실행 통합 테스트)
-- [ ] T101 [P] tests/integration/test_git_workflow.py 생성 (Git 워크플로우 통합 테스트)
+- [ ] T083 [P] tests/unit/tools/test_coding_file_io.py 생성 (파일 I/O 도구 테스트)
+- [ ] T084 [P] tests/unit/tools/test_coding_search.py 생성 (검색 도구 테스트)
+- [ ] T085 [P] tests/unit/tools/test_coding_editor.py 생성 (편집 도구 테스트)
+- [ ] T086 [P] tests/unit/tools/test_github_client.py 생성 (GitHub 클라이언트 테스트)
+- [ ] T087 [P] tests/unit/tools/test_log_writer.py 생성 (로그 작성 도구 테스트)
+- [ ] T088 [P] tests/unit/tools/test_bash_validator.py 생성 (Bash 검증 도구 테스트)
 
-### 9.3 계약 테스트
+### 9.3 단위 테스트 - 기타
 
-- [ ] T102 [P] tests/contract/test_claude_sdk.py 생성 (Claude API 계약 테스트)
-- [ ] T103 [P] tests/contract/test_telegram_api.py 생성 (Telegram API 계약 테스트)
-- [ ] T104 [P] tests/contract/test_github_api.py 생성 (GitHub API 계약 테스트)
+- [ ] T089 [P] tests/unit/telegram/test_auth.py 생성 (인증 테스트)
+- [ ] T090 [P] tests/unit/telegram/test_handlers.py 생성 (핸들러 테스트)
+- [ ] T091 [P] tests/unit/tasks/test_executor.py 생성 (작업 실행 테스트)
+- [ ] T092 [P] tests/unit/tasks/test_context.py 생성 (컨텍스트 테스트)
+- [ ] T093 [P] tests/unit/models/test_task.py 생성 (Task 모델 테스트)
+- [ ] T094 [P] tests/unit/models/test_log.py 생성 (TaskLog 모델 테스트)
+
+### 9.4 통합 테스트
+
+- [ ] T095 [P] tests/integration/test_telegram_channel_integration.py 생성 (텔레그램 채널 통합)
+- [ ] T096 [P] tests/integration/test_main_agent_integration.py 생성 (메인 에이전트 통합)
+- [ ] T097 [P] tests/integration/test_logger_agent_integration.py 생성 (로거 에이전트 통합)
+- [ ] T098 [P] tests/integration/test_coding_tool_integration.py 생성 (코딩 도구 통합)
+- [ ] T099 [P] tests/integration/test_github_tool_integration.py 생성 (GitHub 도구 통합)
+
+### 9.5 계약 테스트
+
+- [ ] T100 [P] tests/contract/test_telegram_api_contract.py 생성 (Telegram API 계약 테스트)
+- [ ] T101 [P] tests/contract/test_claude_api_contract.py 생성 (Claude API 계약 테스트)
+- [ ] T102 [P] tests/contract/test_github_api_contract.py 생성 (GitHub API 계약 테스트)
 
 ---
 
@@ -320,17 +317,17 @@
 
 **목적**: 마무리 작업 및 배포 준비
 
-- [ ] T105 [P] 프로젝트 루트에 pytest.ini 생성 (pytest 설정)
-- [ ] T106 [P] 프로젝트 루트에 ruff.toml 생성 (린팅 설정)
-- [ ] T107 [P] .github/workflows/deploy.yml 생성 (GitHub Actions 배포 워크플로우)
-- [ ] T108 [P] .github/workflows/test.yml 생성 (GitHub Actions 테스트 워크플로우)
-- [ ] T109 코드 정리 및 리팩토링 (중복 제거, 명명 규칙 통일)
-- [ ] T110 [P] 모든 모듈에 docstring 추가 (한글)
-- [ ] T111 [P] README.md 업데이트 (사용 방법, 설치 가이드)
-- [ ] T112 quickstart.md 검증 (단계별 실행 테스트)
-- [ ] T113 전체 테스트 실행 및 커버리지 확인 (pytest --cov=src)
-- [ ] T114 보안 검토 (API 키 노출, 명령어 인젝션 체크)
-- [ ] T115 성능 최적화 (불필요한 API 호출 제거, 캐싱 추가)
+- [ ] T103 [P] 프로젝트 루트에 pytest.ini 생성 (pytest 설정)
+- [ ] T104 [P] 프로젝트 루트에 ruff.toml 생성 (린팅 설정)
+- [ ] T105 [P] .github/workflows/deploy.yml 생성 (GitHub Actions 배포 워크플로우)
+- [ ] T106 [P] .github/workflows/test.yml 생성 (GitHub Actions 테스트 워크플로우)
+- [ ] T107 코드 정리 및 리팩토링 (중복 제거, 명명 규칙 통일)
+- [ ] T108 [P] 모든 모듈에 docstring 추가 (한글)
+- [ ] T109 [P] README.md 업데이트 (사용 방법, 설치 가이드)
+- [ ] T110 quickstart.md 검증 (단계별 실행 테스트)
+- [ ] T111 전체 테스트 실행 및 커버리지 확인 (pytest --cov=src)
+- [ ] T112 보안 검토 (API 키 노출, 명령어 인젝션 체크)
+- [ ] T113 성능 최적화 (불필요한 API 호출 제거, 캐싱 추가)
 
 ---
 
@@ -561,43 +558,52 @@ Task: "tests/unit/test_tools/test_file_tools.py"
 
 ## 요약
 
-**총 작업 수**: 115개 작업 (T001-T115)
+**총 작업 수**: 113개 작업 (T001-T113)
 
 **Phase별 작업 수**:
 - Phase 1 (Setup): 9개
-- Phase 2 (Foundational): 17개 ⚠️ BLOCKING
-- Phase 3 (US1 - P1): 11개 🎯 MVP
+- Phase 2 (Foundational): 22개 ⚠️ BLOCKING (코딩 도구 5개 추가, 상수 관리 추가)
+- Phase 3 (US1 - P1): 12개 🎯 MVP (메인 에이전트 Sonnet 4 + 코딩 도구 통합)
 - Phase 4 (US2 - P1): 5개
-- Phase 5 (US3 - P1): 8개
-- Phase 6 (US4 - P2): 14개
-- Phase 7 (US5 - P3): 11개
-- Phase 8 (추가 기능): 8개
-- Phase 9 (테스트): 21개
+- Phase 5 (US3 - P1): 9개 (로거 에이전트 Haiku 4 + 로그 도구 3개)
+- Phase 6 (US4 - P2): 12개 (GitHub 도구 4개 + 메인 에이전트 통합)
+- Phase 7 (US5 - P3): 4개 (메인 에이전트가 Bash 도구 사용)
+- Phase 8 (추가 기능): 5개 (메인 에이전트 기반 오류 처리)
+- Phase 9 (테스트): 22개 (2개 에이전트 + 도구별 테스트)
 - Phase 10 (Polish): 11개
+
+**아키텍처 변경사항** (2025-11-15):
+- **에이전트 최적화**: 4개 → **2개** (메인 Sonnet + 로거 Haiku)
+  - 메인 에이전트: 모든 핵심 작업 수행 (코딩, GitHub, Bash, 오류 분석)
+  - 로거 에이전트: 작업 로그 생성 전용 (비용 절감)
+- **도구 세분화**: 코딩 도구를 5개로 분리 (file_io, search, editor, navigator, analyzer)
+- **로그 구조 변경**: 이슈 기반 → 시간 기반 (`YYYY-MM-DD-HHmmss.md`)
+- **상수 관리**: constants.py 추가 (MAIN_AGENT_MODEL, LOGGER_AGENT_MODEL 등)
 
 **병렬 실행 기회**:
 - Setup: 5개 작업 병렬 가능
-- Foundational: 3개 그룹으로 병렬 가능 (총 12개 작업)
+- Foundational: 코딩 도구 5개, Bash 도구 2개, 로그 도구 3개 병렬 가능
 - User Stories: US1, US2, US3, US5 완전 병렬 가능
-- Tests: 21개 테스트 모두 병렬 가능
+- Tests: 22개 테스트 모두 병렬 가능
 - Polish: 4개 작업 병렬 가능
 
 **독립 테스트 기준**:
-- US1: 텔레그램으로 작업 지시 → 완료 응답
+- US1: 텔레그램으로 작업 지시 → 메인 에이전트 완료 응답
 - US2: 이전 작업 컨텍스트 참조 확인
-- US3: 작업 로그 파일 생성 확인
+- US3: 시간 기반 작업 로그 파일 생성 확인 (로거 에이전트)
 - US4: 커밋 및 GitHub PR 생성 확인
 - US5: 안전한 명령 실행, 위험 명령 차단 확인
 
-**MVP 범위**: Phase 1 + Phase 2 + Phase 3 (총 37개 작업, US1만 포함)
+**MVP 범위**: Phase 1 + Phase 2 + Phase 3 (총 43개 작업, US1만 포함)
 
 **권장 순서** (1명 개발 시):
-1. Phase 1 → Phase 2 (Foundation)
-2. Phase 3 (US1) → MVP 배포 🎯
-3. Phase 4 (US2) + Phase 5 (US3)
-4. Phase 6 (US4)
-5. Phase 7 (US5)
-6. Phase 8 + Phase 9 + Phase 10
+1. Phase 1 → Phase 2 (Foundation + 코딩/Bash 도구)
+2. Phase 3 (US1) → MVP 배포 🎯 (메인 에이전트 + 코딩 도구 통합)
+3. Phase 5 (US3) → 로거 에이전트 + 로그 도구 추가
+4. Phase 4 (US2) → 컨텍스트 관리
+5. Phase 6 (US4) → GitHub 도구 + 메인 에이전트 통합
+6. Phase 7 (US5) → 메인 에이전트 Bash 통합
+7. Phase 8 + Phase 9 + Phase 10
 
 **형식 검증**: ✅ 모든 작업이 체크박스 형식 준수 (`- [ ] [ID] [P?] [Story?] 설명`)
 
