@@ -1,50 +1,120 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report:
+- Version: 초기화 → 1.0.0
+- Modified principles: N/A (초기 생성)
+- Added sections:
+  * Core Principles (3개 원칙)
+  * 개발 워크플로우
+  * Governance
+- Removed sections: N/A
+- Templates requiring updates:
+  ✅ plan-template.md - Constitution Check 섹션과 일치함
+  ✅ spec-template.md - 요구사항 명확성 및 테스트 가능성 정책과 일치함
+  ✅ tasks-template.md - 테스트 우선 접근법 및 작업 구조와 일치함
+- Follow-up TODOs: 없음
+-->
 
-## Core Principles
+# my-remote-worker 프로젝트 헌법
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+## 핵심 원칙
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### I. 에이전트 커밋 금지 (NON-NEGOTIABLE)
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+사용자의 명시적인 요구가 없는 경우, 에이전트에 의한 자동 커밋은 **절대 금지**됩니다.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+**적용 규칙**:
+- 에이전트는 코드 작성, 파일 수정, 테스트 실행 등의 작업을 수행할 수 있습니다
+- 그러나 Git 커밋은 오직 사용자가 명시적으로 요청한 경우에만 수행됩니다
+- 커밋 메시지 작성, 변경사항 스테이징 등의 준비 작업은 가능하나, 최종 커밋 실행은 사용자 승인이 필요합니다
+- 이 규칙은 코드 변경 이력의 투명성과 사용자 제어권을 보장하기 위한 것입니다
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+**근거**: 소스 코드 관리는 프로젝트의 핵심 자산이며, 모든 변경 이력은 사용자의 명시적 의도에 따라 관리되어야 합니다. 자동화된 커밋은 의도하지 않은 변경을 영구 기록할 수 있으며, 이는 코드 리뷰 및 감사 프로세스를 저해할 수 있습니다.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+### II. 한글 기반 문서화 및 프롬프팅
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+모든 문서 작성과 프롬프트는 **한글**로 이루어집니다.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+**적용 규칙**:
+- 기술 명세서(spec.md), 구현 계획(plan.md), 작업 목록(tasks.md) 등 모든 문서는 한글로 작성됩니다
+- 사용자와의 대화, 질문, 설명은 한글로 진행됩니다
+- 코드 주석도 가능한 한 한글로 작성합니다
+- 기술 용어, API 이름, 라이브러리 이름 등은 원문을 유지하되, 설명은 한글로 제공됩니다
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+**예외 사항**:
+- 소스 코드의 변수명, 함수명, 클래스명 등은 영어 명명 규칙을 따릅니다 (기술적 호환성 및 국제 표준 준수)
+- 외부 API 문서, 라이브러리 이름, 기술 스택 명칭은 원문을 유지합니다
+- Git 커밋 메시지는 프로젝트 팀의 선택에 따라 한글 또는 영어 사용 가능합니다
+
+**근거**: 한글을 주요 언어로 사용하는 팀의 생산성과 명확한 의사소통을 위해, 모든 문서화와 커뮤니케이션은 모국어로 진행되어야 합니다. 이는 기술 개념의 정확한 이해와 효율적인 협업을 가능하게 합니다.
+
+### III. 100% 테스트 커버리지 목표
+
+모든 기능 구현은 **100% 테스트 커버리지**를 목표로 합니다.
+
+**적용 규칙**:
+- 새로운 기능 개발 시, 해당 기능에 대한 테스트 코드를 작성해야 합니다
+- 테스트는 단위 테스트(unit test), 통합 테스트(integration test), 계약 테스트(contract test)로 구성됩니다
+- 코드 커버리지 도구를 사용하여 테스트 커버리지를 측정하고, 100%에 가깝게 유지하도록 노력합니다
+- 테스트 불가능한 코드(예: 외부 시스템 의존성, 레거시 코드)는 명시적으로 문서화하고, 리팩토링 계획을 수립합니다
+
+**테스트 전략**:
+- **단위 테스트**: 개별 함수, 메서드, 클래스의 동작을 검증합니다
+- **통합 테스트**: 여러 컴포넌트 간의 상호작용을 검증합니다
+- **계약 테스트**: API, 인터페이스 등 외부 계약을 검증합니다
+
+**근거**: 높은 테스트 커버리지는 코드 품질, 안정성, 유지보수성을 보장합니다. 테스트는 리팩토링과 기능 추가 시 회귀 버그를 방지하고, 코드 변경에 대한 자신감을 제공합니다. 100% 커버리지는 이상적인 목표이며, 실용적인 접근을 통해 달성 가능한 최대치를 추구합니다.
+
+## 개발 워크플로우
+
+### 기능 개발 프로세스
+
+1. **명세 작성** (`/speckit.specify`): 기능 요구사항을 한글로 명확히 정의합니다
+2. **계획 수립** (`/speckit.plan`): 구현 계획을 한글로 작성하고 기술 스택을 결정합니다
+3. **작업 분해** (`/speckit.tasks`): 구현 가능한 작업 단위로 분해합니다
+4. **테스트 작성**: 테스트를 먼저 작성하고 실패를 확인합니다 (TDD 권장)
+5. **구현 실행** (`/speckit.implement`): 작업을 수행하고 테스트를 통과시킵니다
+6. **커버리지 확인**: 테스트 커버리지를 측정하고 100%에 근접하는지 확인합니다
+7. **사용자 승인 후 커밋**: 사용자가 명시적으로 요청한 경우에만 커밋을 수행합니다
+
+### 문서화 요구사항
+
+- 모든 명세서는 기술적 구현이 아닌 **사용자 가치**와 **비즈니스 요구사항**에 집중합니다
+- 구현 계획은 **구체적인 기술 스택**과 **아키텍처 결정**을 포함합니다
+- 작업 목록은 **독립적으로 테스트 가능한 작업 단위**로 구성됩니다
+- 모든 문서는 비개발자도 이해할 수 있도록 명확한 한글로 작성됩니다
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+### 헌법 개정 절차
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+1. **개정 제안**: 프로젝트 팀원 누구나 개정을 제안할 수 있습니다
+2. **영향 분석**: 개정이 기존 템플릿, 문서, 워크플로우에 미치는 영향을 분석합니다
+3. **팀 승인**: 개정 내용에 대한 팀의 합의를 얻습니다
+4. **버전 갱신**: 시맨틱 버저닝 규칙에 따라 헌법 버전을 갱신합니다
+5. **동기화**: 관련된 모든 템플릿과 문서를 업데이트합니다
+
+### 버전 관리 정책
+
+헌법은 시맨틱 버저닝(MAJOR.MINOR.PATCH)을 따릅니다:
+
+- **MAJOR**: 기존 원칙을 제거하거나 근본적으로 변경하는 경우 (예: 1.0.0 → 2.0.0)
+- **MINOR**: 새로운 원칙이나 섹션을 추가하는 경우 (예: 1.0.0 → 1.1.0)
+- **PATCH**: 오타 수정, 명확성 개선, 문구 정제 등 의미 변경이 없는 경우 (예: 1.0.0 → 1.0.1)
+
+### 준수 검토
+
+- 모든 기능 개발 시작 시, 헌법의 핵심 원칙을 검토합니다
+- 코드 리뷰 시, 헌법 준수 여부를 확인합니다
+- 월간 또는 분기별로 헌법 준수 현황을 검토하고, 개선이 필요한 부분을 식별합니다
+- 헌법 위반 사례가 발견되면, 근본 원인을 분석하고 재발 방지 대책을 수립합니다
+
+### 복잡성 정당화
+
+헌법에서 요구하는 원칙을 준수할 수 없는 경우, 다음을 문서화해야 합니다:
+
+1. **위반 사항**: 어떤 원칙을 준수하지 못하는지 명시
+2. **필요성**: 왜 이 위반이 불가피한지 설명
+3. **대안 검토**: 원칙을 준수하는 더 간단한 대안을 검토했는지, 왜 채택하지 않았는지 설명
+4. **완화 계획**: 위반으로 인한 리스크를 어떻게 관리할 것인지 계획
+
+**Version**: 1.0.0 | **Ratified**: 2025-11-08 | **Last Amended**: 2025-11-08
