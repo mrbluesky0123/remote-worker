@@ -159,8 +159,7 @@ src/
 │       ├── file_io.py         # 파일 읽기/쓰기 도구
 │       ├── search.py          # 코드 검색 도구 (grep, find)
 │       ├── editor.py          # 코드 편집/변경 도구
-│       ├── navigator.py       # 디렉토리 탐색 도구
-│       └── analyzer.py        # 코드 분석 도구 (AST 파싱 등)
+│       └── navigator.py       # 디렉토리 탐색 도구
 │
 ├── constants.py                 # 프로젝트 전역 상수
 │                                # - 타임아웃: 30분
@@ -281,10 +280,9 @@ tests/
 
 7. **코딩 도구 구현 전략**
    - 파일 I/O: 안전한 읽기/쓰기 방법 (경로 검증, 권한 체크)
-   - 코드 검색: ripgrep, ast-grep 등 도구 선택
-   - 코드 편집: diff 기반 vs 전체 파일 교체 vs AST 기반 변경
+   - 코드 검색: ripgrep 기반 빠른 검색
+   - 코드 편집: 문자열 치환 기반 (간단하고 예측 가능)
    - 디렉토리 탐색: glob 패턴, 재귀 탐색, gitignore 준수
-   - 코드 분석: Python AST 파싱, 의존성 분석, 타입 체크 통합
 
 ### 조사 산출물
 
@@ -393,7 +391,7 @@ Phase 1 완료 후, `/speckit.tasks` 명령을 사용하여 `tasks.md`를 생성
    - 사용자 인증 (화이트리스트)
    - 메인 에이전트 구현 (Sonnet, 작업 실행)
    - 로거 에이전트 구현 (Haiku, 로그 생성)
-   - 코딩 도구 구현 (file_io, search, editor, navigator, analyzer)
+   - 코딩 도구 구현 (file_io, search, editor, navigator)
    - 메인 에이전트 - 코딩 도구 통합
    - 컨텍스트 관리 (작업 로그 읽기 → 메인 에이전트 주입)
    - 에이전트 간 데이터 흐름 (메인 → 로거)

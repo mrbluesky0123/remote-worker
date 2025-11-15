@@ -467,54 +467,6 @@ def navigate(pattern: str = "*", recursive: bool = False,
     return [str(f) for f in sorted(files, key=lambda x: x.stat().st_mtime, reverse=True)]
 ```
 
-##### 1.5 코드 분석 (analyzer.py)
-
-**결정**: Python AST 파싱 + 의존성 분석
-
-**기능**:
-- **함수/클래스 목록 추출**: AST를 파싱하여 정의된 함수, 클래스 이름 추출
-- **import 분석**: 파일의 의존성 파악
-- **타입 체크 통합** (선택적): mypy 결과 파싱
-- **복잡도 측정** (선택적): 함수별 라인 수, 사이클로매틱 복잡도
-
-**구현**:
-```python
-import ast
-
-def analyze_python_file(file_path: str) -> dict:
-    """
-    Python 파일 분석 도구
-
-    Returns:
-        {
-            "functions": [함수명 목록],
-            "classes": [클래스명 목록],
-            "imports": [import 목록],
-            "complexity": {함수명: 복잡도}
-        }
-    """
-    with open(file_path, "r") as f:
-        tree = ast.parse(f.read())
-
-    functions = [node.name for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)]
-    classes = [node.name for node in ast.walk(tree) if isinstance(node, ast.ClassDef)]
-    imports = [node.name for node in ast.walk(tree) if isinstance(node, (ast.Import, ast.ImportFrom))]
-
-    return {
-        "functions": functions,
-        "classes": classes,
-        "imports": imports
-    }
-```
-
-**대안 검토**:
-- **정적 분석 도구 통합** (pylint, flake8): 복잡도 증가, 에이전트가 직접 코드 이해하는 것이 더 효과적
-- **언어 서버 프로토콜 (LSP)**: 과도한 복잡도, 현재 범위에서 불필요
-
-**구현 고려사항**:
-- Python 전용 (현재 프로젝트는 Python만 사용)
-- 구문 오류 시 graceful degradation (부분 정보라도 반환)
-
 #### 2. 검색/탐색 도구 (코딩 도구의 일부)
 
 **Glob (파일 패턴 매칭)**
@@ -1530,15 +1482,14 @@ jobs:
    - 비용 최적화: 로깅에 Haiku 사용하여 토큰 비용 절감
    - 복잡도 감소: 에이전트 간 컨텍스트 전달 오버헤드 최소화
 
-2. **코딩 도구 상세화**: 메인 에이전트가 사용하는 5가지 코딩 도구 정의
+2. **코딩 도구 상세화**: 메인 에이전트가 사용하는 4가지 코딩 도구 정의
    - file_io.py: 파일 읽기/쓰기/편집
    - search.py: Grep, Glob 기반 코드 검색
    - editor.py: 문자열 치환 기반 코드 편집
    - navigator.py: Glob 패턴 기반 디렉토리 탐색
-   - analyzer.py: Python AST 파싱 및 의존성 분석
 
 3. **도구 카테고리 재구성**: 4개 카테고리로 명확히 분류
-   - coding/: 파일 I/O, 검색, 편집, 탐색, 분석
+   - coding/: 파일 I/O, 검색, 편집, 탐색
    - github/: 커밋, PR, 배포 모니터링
    - logging/: 로그 읽기/쓰기/파싱
    - bash/: 서버 명령 실행 및 검증

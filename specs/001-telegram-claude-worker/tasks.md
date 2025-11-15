@@ -56,49 +56,48 @@
 
 ### 2.1 기본 에이전트 인프라
 
-- [ ] T010 src/agents/base.py 생성 (BaseAgent 추상 클래스 구현)
-- [ ] T011 src/agents/__init__.py 생성 (에이전트 모듈 초기화)
+- [X] T010 src/agents/base.py 생성 (BaseAgent 추상 클래스 구현)
+- [X] T011 src/agents/__init__.py 생성 (에이전트 모듈 초기화)
 
 ### 2.2 도구(Tools) 인프라
 
-**코딩 도구 (5개 세분화)**:
-- [ ] T012 [P] src/tools/__init__.py 생성 (TOOLS, TOOL_FUNCTIONS 정의)
-- [ ] T013 [P] src/tools/coding/file_io.py 생성 (read_file, write_file, edit_file 도구 구현)
-- [ ] T014 [P] src/tools/coding/search.py 생성 (glob_files, grep 도구 구현)
-- [ ] T015 [P] src/tools/coding/editor.py 생성 (문자열 치환 기반 편집 도구)
-- [ ] T016 [P] src/tools/coding/navigator.py 생성 (디렉토리 탐색 도구)
-- [ ] T017 [P] src/tools/coding/analyzer.py 생성 (Python AST 파싱, 의존성 분석)
+**코딩 도구 (4개 세분화)**:
+- [X] T012 [P] src/tools/__init__.py 생성 (TOOLS, TOOL_FUNCTIONS 정의)
+- [X] T013 [P] src/tools/coding/file_io.py 생성 (read_file, write_file, edit_file 도구 구현)
+- [X] T014 [P] src/tools/coding/search.py 생성 (glob_files, grep 도구 구현)
+- [X] T015 [P] src/tools/coding/editor.py 생성 (문자열 치환 기반 편집 도구)
+- [X] T016 [P] src/tools/coding/navigator.py 생성 (디렉토리 탐색 도구)
 
 **기타 도구**:
-- [ ] T018 [P] src/tools/bash/executor.py 생성 (bash, bash_output 도구 구현)
-- [ ] T019 [P] src/tools/bash/validator.py 생성 (명령어 검증 도구)
+- [X] T018 [P] src/tools/bash/executor.py 생성 (bash, bash_output 도구 구현)
+- [X] T019 [P] src/tools/bash/validator.py 생성 (명령어 검증 도구)
 
 ### 2.3 텔레그램 봇 기반 인프라
 
-- [ ] T020 src/telegram/auth.py 생성 (화이트리스트 사용자 인증 구현)
-- [ ] T021 src/telegram/bot.py 생성 (텔레그램 봇 초기화 및 폴링 시작)
-- [ ] T022 src/telegram/handlers.py 생성 (명령어 핸들러 스켈레톤)
-- [ ] T023 src/telegram/__init__.py 생성 (텔레그램 모듈 초기화)
+- [X] T020 src/telegram/auth.py 생성 (화이트리스트 사용자 인증 구현)
+- [X] T021 src/telegram/bot.py 생성 (텔레그램 봇 초기화 및 폴링 시작)
+- [X] T022 src/telegram/handlers.py 생성 (명령어 핸들러 스켈레톤)
+- [X] T023 src/telegram/__init__.py 생성 (텔레그램 모듈 초기화)
 
 ### 2.4 데이터 모델
 
-- [ ] T024 [P] src/models/task.py 생성 (Task, TaskStatus, AgentType 모델)
-- [ ] T025 [P] src/models/log.py 생성 (TaskLog 모델 및 시간 기반 마크다운 변환)
-- [ ] T026 [P] src/models/session.py 생성 (AgentSession 모델)
-- [ ] T027 [P] src/models/__init__.py 생성 (모델 모듈 초기화)
+- [X] T024 [P] src/models/task.py 생성 (Task, TaskStatus, AgentType 모델)
+- [X] T025 [P] src/models/log.py 생성 (TaskLog 모델 및 시간 기반 마크다운 변환)
+- [X] T026 [P] src/models/session.py 생성 (AgentSession 모델)
+- [X] T027 [P] src/models/__init__.py 생성 (모델 모듈 초기화)
 
 ### 2.5 작업 관리 기반
 
-- [ ] T028 src/tasks/executor.py 생성 (작업 실행 및 타임아웃 관리 기본 구조)
-- [ ] T029 src/tasks/__init__.py 생성 (작업 모듈 초기화)
+- [X] T028 src/tasks/executor.py 생성 (작업 실행 및 타임아웃 관리 기본 구조)
+- [X] T029 src/tasks/__init__.py 생성 (작업 모듈 초기화)
 
 ### 2.6 상수 및 설정
 
-- [ ] T030 [P] src/constants.py 생성 (MAIN_AGENT_MODEL, LOGGER_AGENT_MODEL, 타임아웃, 로그 토큰 제한 등)
+- [X] T030 [P] src/constants.py 생성 (MAIN_AGENT_MODEL, LOGGER_AGENT_MODEL, 타임아웃, 로그 토큰 제한 등)
 
 ### 2.7 메인 진입점
 
-- [ ] T031 src/main.py 생성 (애플리케이션 진입점, 봇 시작)
+- [X] T031 src/main.py 생성 (애플리케이션 진입점, 봇 시작)
 
 **Checkpoint**: 기반 인프라 완료 - 이제 사용자 스토리 구현을 병렬로 시작할 수 있습니다
 
@@ -117,7 +116,7 @@
 - [ ] T032 [P] [US1] src/agents/main/executor.py 생성 (MainAgent 클래스, execute 메서드, 모든 도구 통합)
 - [ ] T033 [US1] src/agents/main/executor.py에 도구 호출 루프 구현 (Claude API tool_use 처리)
 - [ ] T034 [US1] src/agents/main/prompts.py 생성 (메인 에이전트 시스템 프롬프트 정의: 한글, 30분 제약, 커밋 금지)
-- [ ] T035 [US1] src/agents/main/executor.py에 코딩 도구 통합 (file_io, search, editor, navigator, analyzer)
+- [ ] T035 [US1] src/agents/main/executor.py에 코딩 도구 통합 (file_io, search, editor, navigator)
 
 ### 3.2 텔레그램 /task 명령어 핸들러
 
@@ -558,11 +557,11 @@ Task: "tests/unit/test_tools/test_file_tools.py"
 
 ## 요약
 
-**총 작업 수**: 113개 작업 (T001-T113)
+**총 작업 수**: 112개 작업 (T001-T113, T017 제외)
 
 **Phase별 작업 수**:
 - Phase 1 (Setup): 9개
-- Phase 2 (Foundational): 22개 ⚠️ BLOCKING (코딩 도구 5개 추가, 상수 관리 추가)
+- Phase 2 (Foundational): 21개 ⚠️ BLOCKING (코딩 도구 4개 추가, 상수 관리 추가)
 - Phase 3 (US1 - P1): 12개 🎯 MVP (메인 에이전트 Sonnet 4 + 코딩 도구 통합)
 - Phase 4 (US2 - P1): 5개
 - Phase 5 (US3 - P1): 9개 (로거 에이전트 Haiku 4 + 로그 도구 3개)
@@ -576,13 +575,13 @@ Task: "tests/unit/test_tools/test_file_tools.py"
 - **에이전트 최적화**: 4개 → **2개** (메인 Sonnet + 로거 Haiku)
   - 메인 에이전트: 모든 핵심 작업 수행 (코딩, GitHub, Bash, 오류 분석)
   - 로거 에이전트: 작업 로그 생성 전용 (비용 절감)
-- **도구 세분화**: 코딩 도구를 5개로 분리 (file_io, search, editor, navigator, analyzer)
+- **도구 세분화**: 코딩 도구를 4개로 분리 (file_io, search, editor, navigator)
 - **로그 구조 변경**: 이슈 기반 → 시간 기반 (`YYYY-MM-DD-HHmmss.md`)
 - **상수 관리**: constants.py 추가 (MAIN_AGENT_MODEL, LOGGER_AGENT_MODEL 등)
 
 **병렬 실행 기회**:
 - Setup: 5개 작업 병렬 가능
-- Foundational: 코딩 도구 5개, Bash 도구 2개, 로그 도구 3개 병렬 가능
+- Foundational: 코딩 도구 4개, Bash 도구 2개, 로그 도구 3개 병렬 가능
 - User Stories: US1, US2, US3, US5 완전 병렬 가능
 - Tests: 22개 테스트 모두 병렬 가능
 - Polish: 4개 작업 병렬 가능
@@ -594,7 +593,7 @@ Task: "tests/unit/test_tools/test_file_tools.py"
 - US4: 커밋 및 GitHub PR 생성 확인
 - US5: 안전한 명령 실행, 위험 명령 차단 확인
 
-**MVP 범위**: Phase 1 + Phase 2 + Phase 3 (총 43개 작업, US1만 포함)
+**MVP 범위**: Phase 1 + Phase 2 + Phase 3 (총 42개 작업, US1만 포함)
 
 **권장 순서** (1명 개발 시):
 1. Phase 1 → Phase 2 (Foundation + 코딩/Bash 도구)
