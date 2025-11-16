@@ -149,14 +149,14 @@
 
 ### 4.1 컨텍스트 로딩 구현
 
-- [ ] T038 [P] [US2] src/tasks/context.py 생성 (TaskContext 클래스)
-- [ ] T039 [US2] src/tasks/context.py에 load_recent_logs 메서드 구현 (최신 2개 로그 파일 읽기)
-- [ ] T040 [US2] src/tasks/context.py에 토큰 제한 로직 추가 (로그당 2000 토큰)
+- [X] T038 [P] [US2] src/tasks/context.py 생성 (TaskContext 클래스)
+- [X] T039 [US2] src/tasks/context.py에 load_recent_logs 메서드 구현 (최신 2개 로그 파일 읽기)
+- [X] T040 [US2] src/tasks/context.py에 토큰 제한 로직 추가 (로그당 2000 토큰)
 
 ### 4.2 에이전트 통합
 
-- [ ] T041 [US2] src/agents/coding_agent.py의 execute 메서드에 컨텍스트 로드 통합
-- [ ] T042 [US2] src/tasks/executor.py에서 작업 시작 시 컨텍스트 로드 호출
+- [X] T041 [US2] src/agents/main/executor.py의 execute 메서드에 컨텍스트 로드 통합 (이미 구현됨)
+- [X] T042 [US2] src/telegram/handlers.py에서 작업 시작 시 컨텍스트 로드 호출
 
 **Checkpoint**: US2 완료 - 멀티 세션 프로젝트에서 컨텍스트가 유지됩니다
 

@@ -12,6 +12,7 @@ from anthropic import Anthropic
 from src.telegram.auth import verify_user
 from src.models.task import Task, TaskStatus
 from src.tasks.executor import TaskManager, execute_task_with_timeout
+from src.tasks.context import TaskContext
 from src.agents.main.executor import MainAgent
 
 
@@ -150,9 +151,10 @@ async def task_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         client = Anthropic(api_key=api_key)
         agent = MainAgent(client)
 
-        # 작업 컨텍스트 준비 (추후 로그 로딩 추가)
+        # T042: 작업 컨텍스트 준비 - 최근 로그 로딩
+        recent_logs = await TaskContext.load_recent_logs()
         task_context = {
-            "recent_logs": [],  # TODO: Phase 4에서 로그 로딩 구현
+            "recent_logs": recent_logs,
         }
 
         # 타임아웃이 설정된 작업 실행
