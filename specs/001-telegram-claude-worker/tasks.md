@@ -113,27 +113,27 @@
 
 ### 3.1 메인 에이전트 구현 (Sonnet 4)
 
-- [ ] T032 [P] [US1] src/agents/main/executor.py 생성 (MainAgent 클래스, execute 메서드, 모든 도구 통합)
-- [ ] T033 [US1] src/agents/main/executor.py에 도구 호출 루프 구현 (Claude API tool_use 처리)
-- [ ] T034 [US1] src/agents/main/prompts.py 생성 (메인 에이전트 시스템 프롬프트 정의: 한글, 30분 제약, 커밋 금지)
-- [ ] T035 [US1] src/agents/main/executor.py에 코딩 도구 통합 (file_io, search, editor, navigator)
+- [X] T032 [P] [US1] src/agents/main/executor.py 생성 (MainAgent 클래스, execute 메서드, 모든 도구 통합)
+- [X] T033 [US1] src/agents/main/executor.py에 도구 호출 루프 구현 (Claude API tool_use 처리)
+- [X] T034 [US1] src/agents/main/prompts.py 생성 (메인 에이전트 시스템 프롬프트 정의: 한글, 30분 제약, 커밋 금지)
+- [X] T035 [US1] src/agents/main/executor.py에 코딩 도구 통합 (file_io, search, editor, navigator)
 
 ### 3.2 텔레그램 /task 명령어 핸들러
 
-- [ ] T036 [US1] src/telegram/handlers.py에 task_command 핸들러 구현 (작업 수신, 검증, 실행 시작)
-- [ ] T037 [US1] src/telegram/handlers.py에 작업 진행 중 체크 로직 추가 (TaskManager 싱글톤 사용)
-- [ ] T038 [US1] src/telegram/handlers.py에 작업 완료 알림 전송 로직 추가
+- [X] T036 [US1] src/telegram/handlers.py에 task_command 핸들러 구현 (작업 수신, 검증, 실행 시작)
+- [X] T037 [US1] src/telegram/handlers.py에 작업 진행 중 체크 로직 추가 (TaskManager 싱글톤 사용)
+- [X] T038 [US1] src/telegram/handlers.py에 작업 완료 알림 전송 로직 추가
 
 ### 3.3 작업 실행 관리
 
-- [ ] T039 [US1] src/tasks/executor.py에 execute_task_with_timeout 함수 구현 (asyncio.wait_for 사용)
-- [ ] T040 [US1] src/tasks/executor.py에 TaskManager 싱글톤 클래스 구현 (현재 작업 추적)
-- [ ] T041 [US1] src/tasks/executor.py에 서버 재시작 감지 및 중단 작업 로깅 추가
+- [X] T039 [US1] src/tasks/executor.py에 execute_task_with_timeout 함수 구현 (asyncio.wait_for 사용)
+- [X] T040 [US1] src/tasks/executor.py에 TaskManager 싱글톤 클래스 구현 (현재 작업 추적)
+- [X] T041 [US1] src/tasks/executor.py에 서버 재시작 감지 및 중단 작업 로깅 추가
 
 ### 3.4 통합 및 검증
 
-- [ ] T042 [US1] src/telegram/bot.py에 /task 명령어 핸들러 등록
-- [ ] T043 [US1] src/main.py에서 봇 시작 및 환경 변수 검증 추가
+- [X] T042 [US1] src/telegram/bot.py에 /task 명령어 핸들러 등록
+- [X] T043 [US1] src/main.py에서 봇 시작 및 환경 변수 검증 추가
 
 **Checkpoint**: US1 완료 - 텔레그램으로 작업 지시를 보내고 결과를 받을 수 있습니다 (MVP!)
 
