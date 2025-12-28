@@ -5,7 +5,7 @@
 """
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional
-from anthropic import Anthropic
+from anthropic import AsyncAnthropic
 
 
 class BaseAgent(ABC):
@@ -13,15 +13,15 @@ class BaseAgent(ABC):
     모든 에이전트의 기본 클래스
 
     Attributes:
-        client: Anthropic Claude API 클라이언트
+        client: Anthropic Claude API 클라이언트 (Async)
         model: 사용할 LLM 모델 (예: claude-sonnet-4, claude-haiku-4)
         system_prompt: 에이전트의 시스템 프롬프트
     """
 
-    def __init__(self, client: Anthropic, model: str):
+    def __init__(self, client: AsyncAnthropic, model: str):
         """
         Args:
-            client: Anthropic API 클라이언트
+            client: Anthropic API 클라이언트 (Async)
             model: LLM 모델 이름
         """
         self.client = client

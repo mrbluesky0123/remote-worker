@@ -5,18 +5,59 @@
 """
 import asyncio
 import os
-from telegram import Update
-from telegram.ext import ContextTypes
-from anthropic import Anthropic
+from datetime import datetime
+from pathlib import Path
+import telegram
+import telegram.ext as tg_ext
+from anthropic import AsyncAnthropic
 
-from src.telegram.auth import verify_user
+from src.bot.auth import verify_user
 from src.models.task import Task, TaskStatus
 from src.tasks.executor import TaskManager, execute_task_with_timeout
 from src.tasks.context import TaskContext
 from src.agents.main.executor import MainAgent
+from src.constants import PROJECT_ROOT
 
 
-async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def _save_simple_log(task: Task, description: str, result: str):
+    """
+    간단한 작업 로그를 저장합니다 (임시, Phase 5에서 LoggerAgent로 대체 예정)
+
+    Args:
+        task: 작업 객체
+        description: 작업 설명
+        result: 작업 결과
+    """
+    log_dir = PROJECT_ROOT / ".ccw" / "logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+
+    # 시간 기반 파일명
+    timestamp = datetime.now().strftime("%Y-%m-%d-%H%M%S")
+    log_file = log_dir / f"{timestamp}.md"
+
+    # 로그 내용 생성
+    log_content = f"""# 작업 로그
+
+**작업 ID**: {task.id}
+**시작 시각**: {task.started_at.strftime('%Y-%m-%d %H:%M:%S')}
+**완료 시각**: {task.completed_at.strftime('%Y-%m-%d %H:%M:%S')}
+**소요 시간**: {(task.completed_at - task.started_at).total_seconds() / 60:.1f}분
+**상태**: {task.status.value}
+
+## 작업 설명
+
+{description}
+
+## 실행 결과
+
+{result}
+"""
+
+    # 파일 저장
+    log_file.write_text(log_content, encoding="utf-8")
+
+
+async def start_command(update: telegram.Update, context: tg_ext.ContextTypes.DEFAULT_TYPE):
     """
     /start 명령 핸들러
 
@@ -40,7 +81,27 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def hello_command(update: telegram.Update, context: tg_ext.ContextTypes.DEFAULT_TYPE):
+    """
+    /hello 명령 핸들러
+
+    간단한 헬로월드 응답으로 봇 연결을 테스트합니다.
+    """
+    if not await verify_user(update):
+        return
+
+    if not update.message:
+        return
+
+    await update.message.reply_text(
+        "👋 Hello, World!\n\n"
+        "✅ 텔레그램 봇이 정상적으로 작동 중입니다!\n"
+        f"🆔 당신의 User ID: `{update.effective_user.id}`\n"
+        f"👤 이름: {update.effective_user.first_name}"
+    )
+
+
+async def help_command(update: telegram.Update, context: tg_ext.ContextTypes.DEFAULT_TYPE):
     """
     /help 명령 핸들러
 
@@ -56,6 +117,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 📖 **Claude Code Worker 도움말**
 
 **핵심 명령어**:
+• `/hello` - 봇 연결 테스트
 • `/task [작업]` - 개발 작업 실행
   예: /task main.py에 로깅 추가
 
@@ -83,7 +145,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(help_text)
 
 
-async def task_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def task_command(update: telegram.Update, context: tg_ext.ContextTypes.DEFAULT_TYPE):
     """
     /task 명령 핸들러
 
@@ -143,12 +205,12 @@ async def task_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # 메인 에이전트 실행
     try:
-        # Anthropic 클라이언트 생성
+        # Anthropic 클라이언트 생성 (Async)
         api_key = os.environ.get("ANTHROPIC_API_KEY")
         if not api_key:
             raise ValueError("ANTHROPIC_API_KEY 환경 변수가 설정되지 않았습니다.")
 
-        client = Anthropic(api_key=api_key)
+        client = AsyncAnthropic(api_key=api_key)
         agent = MainAgent(client)
 
         # T042: 작업 컨텍스트 준비 - 최근 로그 로딩
@@ -165,6 +227,9 @@ async def task_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         # 작업 완료 처리
         task.complete(result)
+
+        # 간단한 작업 로그 저장
+        await _save_simple_log(task, task_description, result)
 
         # T038: 작업 완료 알림
         await update.message.reply_text(

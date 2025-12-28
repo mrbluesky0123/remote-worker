@@ -5,7 +5,7 @@
 """
 import asyncio
 from typing import Any, Dict, List, Optional
-from anthropic import Anthropic
+from anthropic import AsyncAnthropic
 
 from src.agents.base import BaseAgent
 from src.agents.main.prompts import MAIN_AGENT_SYSTEM_PROMPT
@@ -42,10 +42,10 @@ class MainAgent(BaseAgent):
     - 오류 분석: 예외 분석 및 해결 방법 제시
     """
 
-    def __init__(self, client: Anthropic):
+    def __init__(self, client: AsyncAnthropic):
         """
         Args:
-            client: Anthropic API 클라이언트
+            client: Anthropic API 클라이언트 (Async)
         """
         super().__init__(client, MAIN_AGENT_MODEL)
         self.system_prompt = MAIN_AGENT_SYSTEM_PROMPT

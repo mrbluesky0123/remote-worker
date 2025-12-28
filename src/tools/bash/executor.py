@@ -5,6 +5,7 @@ Bash 명령 실행 도구
 """
 import asyncio
 from typing import Dict, Any, Optional
+from src.constants import PROJECT_ROOT
 
 # 백그라운드 프로세스 저장소
 BACKGROUND_PROCESSES: Dict[str, asyncio.subprocess.Process] = {}
@@ -38,6 +39,7 @@ async def bash(
                 command,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
+                cwd=str(PROJECT_ROOT),
             )
 
             bash_id = str(id(proc))
@@ -54,6 +56,7 @@ async def bash(
             command,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
+            cwd=str(PROJECT_ROOT),
         )
 
         stdout, stderr = await asyncio.wait_for(

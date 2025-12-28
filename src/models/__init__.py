@@ -1,10 +1,10 @@
 """
-pt0 ¨x ¨È
+ë°ì´í„° ëª¨ë¸ ëª¨ë“ˆ
 
-ü” Ôğğ X:
-- Task: ‘Å ¨x
-- TaskLog: ‘Å \ø ¨x
-- AgentSession: Ğt¸ 8X ¨x
+ì£¼ìš” ëª¨ë¸:
+- Task: ì‘ì—… ëª¨ë¸
+- TaskLog: ì‘ì—… ë¡œê·¸ ëª¨ë¸
+- AgentSession: ì—ì´ì „íŠ¸ ì„¸ì…˜ ëª¨ë¸
 """
 from src.models.task import Task, TaskStatus, AgentType
 from src.models.log import TaskLog

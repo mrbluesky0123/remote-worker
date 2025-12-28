@@ -1,9 +1,7 @@
 """
-Ğt¸ ¨È
+AI ì—ì´ì „íŠ¸ ëª¨ë“ˆ
 
-2X ¹T Ğt¸ õ:
-- MainAgent (Sonnet): T), GitHub, …9 ä‰ ñ ¨à uì ‘Å
-- LoggerAgent (Haiku): ‘Å \ø İ1 © (D© ¨()
+ë©”ì¸ ì—ì´ì „íŠ¸ì™€ ë¡œê±° ì—ì´ì „íŠ¸ë¥¼ í¬í•¨í•©ë‹ˆë‹¤.
 """
 from src.agents.base import BaseAgent
 

@@ -93,7 +93,7 @@ async def main():
     await handle_task_interruption()
 
     # 텔레그램 봇 시작
-    from src.telegram import run_bot
+    from src.bot.bot import run_bot
 
     print("\n" + "=" * 60)
     print(" Claude Code Worker (CCW)")

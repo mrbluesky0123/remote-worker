@@ -5,7 +5,7 @@
 """
 import os
 from typing import Set
-from telegram import Update
+import telegram
 
 
 def get_allowed_user_ids() -> Set[int]:
@@ -32,7 +32,7 @@ def get_allowed_user_ids() -> Set[int]:
 ALLOWED_USER_IDS: Set[int] = get_allowed_user_ids()
 
 
-async def verify_user(update: Update) -> bool:
+async def verify_user(update: telegram.Update) -> bool:
     """
     사용자가 화이트리스트에 포함되어 있는지 확인합니다.
 
