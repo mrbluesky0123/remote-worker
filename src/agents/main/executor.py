@@ -67,8 +67,8 @@ class MainAgent(BaseAgent):
         # 메시지 히스토리 초기화
         messages = self._build_messages_with_context(task, context)
 
-        # 도구 사용 루프 (최대 10회 반복)
-        max_iterations = 10
+        # 도구 사용 루프 (최대 25회 반복)
+        max_iterations = 25
         iteration = 0
 
         while iteration < max_iterations:
